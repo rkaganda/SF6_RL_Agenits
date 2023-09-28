@@ -1,0 +1,12 @@
+*.ipynb
+*.pyc
+**/.ipynb_checkpoints/
+*.png
+**/.idea/
+/.github/workflows/main.yaml
+/TODO
+runs/
+history/
+notebooks/
+logs/
+models/
