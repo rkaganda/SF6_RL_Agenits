@@ -1,10 +1,10 @@
-# Street Fighter 6 Reinformcent Learning Apgent
+# Street Fighter 6 Reinforcement Learning Agent
 
 ## Overview
 
-Street Fighter 6 StableBaselines Enviorment and various agents.
+Street Fighter 6 StableBaselines Environment and various agents.
 
-## About
+## Agents
 
 TODO
 
