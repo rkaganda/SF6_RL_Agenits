@@ -13,8 +13,6 @@ game_env_buffer_path = f"{env_path}game_env_buffer.buf"
 game_env_format_path = f"{env_path}game_env.format"
 action_key_mapping_path = f"{env_path}action_key_mapping.json"
 
-os.makedirs('history', exist_ok=True)
-
 
 def create_state_space(feature_mappings: dict, feature: str) -> gym.spaces:
     if feature in feature_mappings:
@@ -36,8 +34,6 @@ class SF6GameState:
         self.last_game_env_frame = None  # last env frame read
         self.current_game_env_frame = None  # the current frame being read 
         self.current_game_state = None  # the current game state
-        self.state_history = {}
-        self.action_history = {}
 
         self.game_env_buffer = open(game_env_buffer_path, 'r')
         self.action_event_buffer = open(action_event_buffer_path, 'r+')
@@ -68,7 +64,6 @@ class SF6GameState:
             if self.current_game_env_frame != self.last_game_env_frame:  # if this is a new frame
                 if len(current_content) == (len(self.game_env_format)*2) + 1:  # if all the data is there
                     self.current_game_state = current_content  # update the game state
-                    self.state_history[self.current_game_env_frame] = self.current_game_state
                 else:
                     warnings.warn(f"Invalid game state length expected={(len(self.game_env_format)*2) + 1} actual={len(current_content)}")
                 return
@@ -141,7 +136,6 @@ class SF6GameState:
 
     def send_actions(self, actions: list):
         action_status = [str(self.current_game_env_frame)] + list(actions) + [0]
-        self.action_history[self.current_game_env_frame] = actions
 
         self.write_action_status(action_status)
 
@@ -176,15 +170,6 @@ class SF6GameState:
             state_features = self.current_game_state[1:]
             p_0_health = int(state_features[self.game_env_format.index('current_HP')])
             p_1_health = int(state_features[self.game_env_format.index('current_HP') + len(self.game_env_format)])
-
-        with open(f"history/{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", 'w') as f:
-            json.dump({
-                "mapping": self.game_env_format,
-                "state_history": self.state_history,
-                "action_history": self.action_history,
-            }, f)
-        self.state_history.clear()
-        self.action_history.clear()
 
     def write_action_status(self, action_status: list):
         action_status = ','.join(map(str, action_status))
@@ -221,6 +206,7 @@ class SF6GameState:
                 raise TypeError(f"No encoding {feature} for this type {type(feature_map)}.")
         else:
             raise KeyError(f"{feature} not found in feature mapping.")
+
 
 
 

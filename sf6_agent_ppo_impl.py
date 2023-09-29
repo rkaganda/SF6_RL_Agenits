@@ -20,7 +20,7 @@ for d in paths.values():
 
 
 def train_eval_model(frame_stack, env_num=1):
-    run_name = f"luke_luke_LR5e-4_stationary"
+    run_name = f"luke_luke_LR5e-4_distinct"
     run_name = f"{run_name}_{datetime.now().strftime('%Y%m%d_%H%M')}"
 
     paths['models_path'] = f"{paths['models_path']}/{run_name}"
@@ -31,8 +31,9 @@ def train_eval_model(frame_stack, env_num=1):
     def make_env():
         e = gym.make('SF6AgentEnv', **{
             "characters": ['luke', 'luke'],
-            "action_space_mapping": action_spaces.create_modern_luke_action_mapping(),
-            "keep_prev_action": True
+            "action_space_mapping": action_spaces.create_distinct_action_mapping(),
+            "keep_prev_action": True,
+            "store_history": True
         })
         return Monitor(e)
     env = DummyVecEnv([lambda: make_env()])

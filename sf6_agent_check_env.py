@@ -4,7 +4,8 @@ import action_spaces
 
 env = SF6AgentEnv(
     characters=['luke', 'luke'],
-    action_space_mapping=action_spaces.create_distinct_action_mapping()
+    action_space_mapping=action_spaces.create_distinct_action_mapping(),
+    store_history=True
 )
 
 check_env(env)

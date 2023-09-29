@@ -1,6 +1,9 @@
 import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
+from datetime import datetime
+import json
+import os
 
 from game_state import SF6GameState
 import game_state
@@ -9,7 +12,7 @@ from typing import Dict, Any, Tuple
 
 
 class SF6AgentEnv(gym.Env):
-    def __init__(self, characters, action_space_mapping=None, keep_prev_action=True):
+    def __init__(self, characters, action_space_mapping=None, keep_prev_action=True, store_history=False):
         super().__init__()
         self.keep_prev_action = keep_prev_action
         self.action_space_mapping = action_space_mapping
@@ -53,6 +56,8 @@ class SF6AgentEnv(gym.Env):
         
         self.total_steps = 0
         self.action_history = []
+        self.observation_history = []
+        self.store_history = store_history
         self.last_action = None
         self.is_success = False
         self.terminate = False
@@ -74,6 +79,9 @@ class SF6AgentEnv(gym.Env):
         self.last_1_current_HP = 10000
         self.current_1_current_HP = 10000
 
+        if self.store_history:
+            os.makedirs('history', exist_ok=True)
+
     def _get_obs(self) -> Dict[str, np.array]:
         observation = {}
         # append last actions
@@ -89,6 +97,9 @@ class SF6AgentEnv(gym.Env):
         # used to calculate reward 
         self.current_0_current_HP = observation['0_current_HP'][0]
         self.current_1_current_HP = observation['1_current_HP'][0]
+
+        if self.store_history:
+            self.observation_history.append(observation)
         
         return observation
 
@@ -158,11 +169,26 @@ class SF6AgentEnv(gym.Env):
         self.current_1_current_HP = 10000
         self.terminate = False
 
+        if self.store_history and len(self.observation_history) > 0:
+            with open(f"observations/{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", 'w') as f:
+                json.dump({
+                    "observations": self.observation_history,
+                    "actions": self.action_history
+                }, f, cls=NumpyEncoder)
+            self.observation_history.clear()
+
         self.total_steps = 0
         self.action_history = []
         obs = self._get_obs()
 
         return obs, self._get_info()
+
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NumpyEncoder, self).default(obj)
 
 
 gym.envs.register(
