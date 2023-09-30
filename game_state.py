@@ -55,18 +55,22 @@ class SF6GameState:
         self.wait_for_game_env_update()  # read the game state
 
     def wait_for_game_env_update(self):
+        last_timestamp = 0
+
         while True:
-            self.game_env_buffer.seek(0)  # go to the start of the file
-            current_content = self.game_env_buffer.readline().strip().split(",")  # read the first line and split
-
-            self.current_game_env_frame = current_content[0]  # first element is current frame
-
-            if self.current_game_env_frame != self.last_game_env_frame:  # if this is a new frame
-                if len(current_content) == (len(self.game_env_format)*2) + 1:  # if all the data is there
-                    self.current_game_state = current_content  # update the game state
-                else:
-                    warnings.warn(f"Invalid game state length expected={(len(self.game_env_format)*2) + 1} actual={len(current_content)}")
-                return
+            current_timestamp = os.path.getmtime(game_env_buffer_path)
+            if current_timestamp != last_timestamp:
+                self.game_env_buffer.seek(0)
+                current_content = self.game_env_buffer.readline().strip().split(",")
+                self.current_game_env_frame = current_content[0]
+                if self.current_game_env_frame != self.last_game_env_frame:
+                    expected_length = (len(self.game_env_format) * 2) + 1
+                    if len(current_content) == expected_length:
+                        self.current_game_state = current_content
+                        return  # Exit after processing the new game state
+                    else:
+                        warnings.warn(
+                            f"Invalid game state length expected={expected_length} actual={len(current_content)}")
 
     def get_player_features(self, player_idx: int) -> List[str]:
         # calculate slice indices for this player's features

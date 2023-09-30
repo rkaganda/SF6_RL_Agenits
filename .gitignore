@@ -11,3 +11,4 @@ notebooks/
 logs/
 models/
 observations/
+*.prof

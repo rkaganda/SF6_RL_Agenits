@@ -1,4 +1,4 @@
-# Street Fighter 6 Reinforcement Learning Agent
+# Street Fighter 6 Reinforcement Learning Agents
 
 ## Overview
 
